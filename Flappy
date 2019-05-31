@@ -1,0 +1,144 @@
+#-*- coding: utf-8-*-
+from tkinter import *
+import copy
+from random import *
+from math import *
+
+g = 20
+
+class FLAPPYBIRD :
+    
+    def __init__(self):
+        self.root = Tk()
+        self.canvas = Canvas(self.root, width = 500, height = 500, bg = 'ivory')
+        self.canvas.pack(side = TOP)
+        
+        #le temps
+        self.vitesse = 40
+        self.t = 0
+        self.t2 = 0
+        self.delta = 0.11
+        self.force = 0
+        #coordonnées de flappy
+        self.y0 = 250
+        self.y = self.y0
+        self.x = 150
+        
+        #coordonnées des tubes
+        self.xtube = 500
+        self.htube = randint(0, 350)
+        self.xtube2 = 750
+        self.htube2 = randint(0, 350)
+        
+        #variable running 
+        self.running = 0
+        self.score = 0
+        self.compté1 = 0
+        self.compté2 = 0
+        #boutons
+        self.tub = Button(self.root, text = 'Jouer', command = self.runtube)
+        self.tub.pack(side = LEFT)
+        self.jump = Button(self.root, text = ' Jump ', command = self.pushing)
+        self.jump.pack(side = LEFT)
+        self.qt = Button(self.root, text = ' Quitter ', command = self.root.destroy)
+        self.qt.pack(side = RIGHT)
+        self.lab = Label(self.root, text = ' ')
+        self.lab.pack()
+        self.root.mainloop()
+    
+    def cercle(self,x,y, dedans = 'yellow' ):
+        self.canvas.create_oval(x-10, y-10, x+10, y+10, fill = dedans)
+    
+    def tube1(self, dedans = 'green'):
+        if self.xtube <= 0 :
+            self.xtube = 500
+            self.compté1 = 0
+            self.htube = randint(0, 350)
+        self.canvas.create_rectangle(self.xtube, 0, self.xtube+40, self.htube, fill = dedans )
+        self.canvas.create_rectangle(self.xtube, self.htube+150, self.xtube+40, 500, fill = dedans)
+        
+    def tube2(self, dedans = 'green'):
+        if self.xtube2 <= 0 :
+            self.xtube2 = 500
+            self.compté2 = 0
+            self.htube2 = randint(0, 350)
+        self.canvas.create_rectangle(self.xtube2, 0, self.xtube2+40, self.htube2, fill = dedans )
+        self.canvas.create_rectangle(self.xtube2, self.htube2+150, self.xtube2+40, 500, fill = dedans)
+
+    def tubeavance(self):
+        self.canvas.delete(ALL)
+        self.t = self.t + self.delta
+        self.t2 = self.t2 + 3*self.delta
+        self.xtube = self.xtube - self.vitesse*self.delta
+        self.xtube2 = self.xtube2 - self.vitesse*self.delta
+        self.jumping()
+        self.y = self.y + (g-self.force)*self.delta*self.t2
+        if self.y<=0 :
+            self.y = 0
+        if self.xtube <= self.x-20 and self.compté1 == 0 : 
+            self.score = self.score + 1
+            self.compté1 = 1
+        elif self.xtube2 <= self.x-20 and self.compté2 == 0 :
+            self.score = self.score + 1
+            self.compté2 = 1
+        self.lab.configure(text = 'score = ' + str(self.score) + ' points')
+        self.cercle(self.x, self.y)
+        self.perdre()
+        if self.y > 500 :
+            self.stoptube()
+        self.tube1()
+        self.tube2()
+    
+    def iterationtube(self):
+        if self.running == 1 :
+            self.tubeavance()
+            self.canvas.after(30, self.iterationtube)
+    def runtube(self):
+        if self.running == 0 :
+            self.running = 1
+            self.y = self.y0
+            self.t = 0
+            self.t2 = 0
+            self.xtube = 500
+            self.htube = randint(0, 350)
+            self.xtube2 = 750
+            self.htube2 = randint(0, 350)
+            self.tube1()
+            self.tube2()
+            self.score = 0
+            self.compté1 = 0
+            self.compté2 = 0
+            self.lab.configure(text = '')
+            self.iterationtube()
+            self.tub.configure(state = DISABLED)
+    def stoptube(self):
+        if self.running == 1 :
+            self.running = 0
+            self.lab.configure(text = 'Game Over, score de ' + str(self.score) + ' points')
+            self.lab.pack()            
+            self.tub.configure(state = NORMAL)
+    def jumping(self):
+        self.force = self.force*exp(-4*self.delta)
+    def pushing(self):
+        self.t2 = 0
+        self.force = 800
+    
+    def perdre(self):
+        x1 = self.x
+        y1 = self.y
+        x2 = min(self.xtube, self.xtube2)
+        if x2 == self.xtube :
+            y2 = self.htube
+        else : 
+            y2 = self.htube2
+        
+        if x1>=x2-10 and x1 <= x2+50 : 
+            if y1<= y2+10 or y1>= y2+140 :
+                self.stoptube()
+        
+        
+        
+        
+    
+
+FLAPPYBIRD()
