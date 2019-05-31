@@ -1,0 +1,145 @@
+#-*- coding: utf-8-*-
+from tkinter import *
+from random import *
+
+class TICTACTOE :
+    def __init__(self):
+        self.root = Tk()
+        self.canvas = Canvas(self.root, width = 300, height = 300, bg = 'ivory')
+        self.canvas.pack(side = TOP)   
+        self.t = 0
+        self.running = 1
+        self.canvas.create_line(0, 100, 300, 100, fill = 'black')
+        self.canvas.create_line(0, 200, 300, 200, fill = 'black')
+        self.canvas.create_line(100, 0, 100, 300, fill = 'black')
+        self.canvas.create_line(200, 0, 200, 300, fill = 'black')
+        self.g = Button(self.root, text = 'gauche', command = self.gauche)
+        self.d = Button(self.root, text = 'droite', command = self.droite)
+        self.h = Button(self.root, text = 'haut', command = self.haut)
+        self.b = Button(self.root, text = 'bas', command = self.bas)
+        self.c = Button(self.root, text = "Poser pion", command = self.choisir)
+        self.lab = Label(self.root, text = ' ')
+        self.lab.pack()
+        self.c.pack(side = RIGHT)
+        self.g.pack(side = LEFT)
+        self.d.pack(side = RIGHT)
+        self.h.pack(side=TOP)
+        self.b.pack(side = BOTTOM)
+        self.cases = [[0]*3 for i in range(3)]
+        self.player = 0
+        self.choix = [0,0]
+        self.compteur()
+        self.root.mainloop()
+        
+    def croix(self, x, y, coul='blue'):
+        self.canvas.create_line(x, y, x+80, y+80, fill = coul)
+        self.canvas.create_line(x, y+80, x+80, y, fill = coul)
+        
+    def cercle(self,x,y, coul='red' ):
+        self.canvas.create_oval(x-40, y-40, x+40, y+40, outline = coul)
+    
+    def fleche(self, y, x, coul='black'):
+        self.canvas.create_line(x,y, x+10, y+10, fill = coul)
+        self.canvas.create_line(x+7, y+5, x+10, y+10, fill = coul)
+        self.canvas.create_line(x+5, y+7, x+10, y+10, fill = coul)
+    
+    def refairecanvas(self):
+        self.canvas.delete(ALL)
+        self.canvas.create_line(0, 100, 300, 100, fill = 'black')
+        self.canvas.create_line(0, 200, 300, 200, fill = 'black')
+        self.canvas.create_line(100, 0, 100, 300, fill = 'black')
+        self.canvas.create_line(200, 0, 200, 300, fill = 'black')        
+        for i in range(3):
+            for j in range(3):
+                if self.cases[i][j] == 'joueur' :
+                    self.jouerjoueur(i,j)
+                elif self.cases[i][j] == 'ordi' :
+                    self.jouerAI(i,j)
+    
+    def jouerjoueur(self, i, j):
+        self.croix(100*j+10, 100*i+10)
+        self.cases[i][j] = 'joueur'
+    
+    def jouerAI(self, i, j):
+        self.cercle(100*j+50, 100*i+50)
+        self.cases[i][j] = 'ordi'
+        
+    def gauche(self):
+        self.refairecanvas()
+        if self.choix[1] >=1 :
+            self.choix[1] = self.choix[1]-1
+        self.fleche(self.choix[0]*100 + 10, self.choix[1]*100 + 10)    
+    def droite(self):
+        self.refairecanvas()
+        if self.choix[1]<=1 :
+            self.choix[1] = self.choix[1]+1
+        self.fleche(self.choix[0]*100 + 10, self.choix[1]*100 + 10)
+    def bas(self):
+        self.refairecanvas()
+        if self.choix[0]<=1:
+            self.choix[0] = self.choix[0]+1
+        self.fleche(self.choix[0]*100 + 10, self.choix[1]*100 + 10)
+    def haut(self):
+        self.refairecanvas()
+        if self.choix[0]>=1 :
+            self.choix[0] = self.choix[0]-1
+        self.fleche(self.choix[0]*100 + 10, self.choix[1]*100 + 10)
+    
+    def choisir(self):
+        [i, j] = self.choix
+        if self.cases[i][j] == 0 :
+            self.refairecanvas()
+            self.jouerjoueur(i,j)
+            self.lab.configure(text = "C'est joué !")
+            self.gagner()
+            self.compteur()
+        else :
+            self.lab.configure(text = 'Impossible de jouer ici')
+    def compteur(self):
+        if self.running == 1 :
+            self.c.configure(state = DISABLED)
+            if self.t<10 :
+                self.t = self.t + 0.1
+                self.canvas.after(10, self.compteur)
+            else :
+                self.c.configure(state = NORMAL)
+                self.choix=[0,0]
+                self.t = 0
+                self.ordi()
+                self.fleche(10,10)
+                self.gagner()
+            
+    def ordi(self):
+        i, j = randint(0,2), randint(0,2)
+        if self.cases[i][j] != 0 :
+            self.ordi()
+        else :
+            self.jouerAI(i,j)
+    def gagner(self):
+        for a in ['joueur', 'ordi']:
+            for i in range(3):
+                if self.cases[i] == [a,a,a] or (self.cases[0][i], self.cases[1][i], self.cases[2][i]) == (a,a,a) :
+                    self.c.configure(state = DISABLED)
+                    self.lab.configure(text = a + ' a gagné !') 
+                    self.running = 0
+            if (self.cases[0][0], self.cases[1][1], self.cases[2][2]) == (a,a,a) or (self.cases[2][0], self.cases[1][1], self.cases[0][2]) == (a,a,a):
+                self.c.configure(state = DISABLED)
+                self.lab.configure(text = a + ' a gagné !')
+                self.running = 0
+        h = 0
+        for i in range(3):
+            for j in range(3):
+                if self.cases[i][j] == 0 :
+                    h = h + 1
+            
+        if h == 0 :
+            self.c.configure(state = DISABLED)
+            self.lab.configure(text = 'Tout le monde a perdu')
+        
+    
+        
+        
+        
+            
+        
+TICTACTOE()
